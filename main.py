@@ -137,7 +137,7 @@ def predict(image_input_tensor, model):
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model_path = '/Users/macbook/Documents/projects/cat pain recog/models/rn18 adamW FL final.pth'
+model_path = '/Users/macbook/Documents/projects/cat pain recog/models/Copy of rn18 adamW FL final.pth'
 detection_model_path = '/Users/macbook/Documents/projects/cat pain recog/models/detector'
 image_path = input('Enter image file (absolute path): ')
 thr = 0.4
