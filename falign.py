@@ -46,7 +46,7 @@ def send_img(img_path, url):
     print('IMAGE PROCESSING FAILED')
 
 url = "http://34.165.76.57:6000/landmarks"
-image_path = "/Users/macbook/Documents/skripsi_ayas/custom testing images (refs)/feighel no pain 1.png"  
+image_path = "/Users/macbook/Documents/skripsi_ayas/custom testing images (refs)/(acute pain in cats 2018 booklet) pain.png"  
 print(f'API URL {url}\nINPUT_PATH{image_path}')
 
 result = send_img(image_path, url)

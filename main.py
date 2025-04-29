@@ -1,3 +1,4 @@
+print(f'IMPORTING MODULES...')
 import torch
 import torchvision.models as models
 import torch.nn as nn
@@ -125,15 +126,18 @@ def predict(image_input_tensor, model):
         output = model(image_input_tensor)
         print(f'OUTPUT logit: {output}')
         print(f'OUTPUT shape: {output.shape}')
+          
         prediction = output.squeeze(1) >= thr
         print(f'\nOUTPUT AFTER thr: {prediction}')
         print(f'OUTPUT shape AFTER squeeze: {output.squeeze(1).shape}')
+        
+        confidence = torch.sigmoid(output.squeeze(1))
         if prediction == True:
             print('–'*10)
-            return print(f'\nPrediksi: ucing ATIT T__T')
+            return print(f'\nPrediksi: ucing ATIT T__T, {confidence.item()*100:.4f}% yakin')
         else:
             print('–'*10)
-            return print(f'\nPrediksi: ucing CEHAT n__n')
+            return print(f'\nPrediksi: ucing CEHAT n__n, {(1-confidence.item())*100:.4f}% yakin')
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
