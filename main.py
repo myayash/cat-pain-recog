@@ -101,6 +101,7 @@ def resize_pad(img):
     return F.to_tensor(padding)
 
 def preprocess_img(image_input):
+    image_input = Image.open(image_input)
     fig, ax = plt.subplots()
     print('–'*10)
     print(f'\nShowing image...')
@@ -130,7 +131,7 @@ def preprocess_img(image_input):
     print(f'TRANSFORMED IMAGE SIZE: {image_tensor.size()}')
 
     image_tensor = image_tensor.squeeze()
-    print(f'SQUEEZE TENSOR SIZE: {image_tensor.size()}')
+    print(f'SQUEEZED TENSOR SIZE: {image_tensor.size()}')
 
     t_c, t_h, t_w = image_tensor.shape
     denorm_image = torch.empty_like(image_tensor)
@@ -181,20 +182,19 @@ detection_model_path = '/Users/macbook/Documents/projects/cat pain recog/models/
 image_path = input('Enter image file (absolute path): ')
 thr = 0.4
 
-# get landmarks via api
-result = send_img(image_path, api_url)
-print(f'RESPONSE:\n {result}')
-
-# process image with landmarks
-cropped_image = process_response(result, image_path)   
-
 # preprocess img further
-image_tensor = preprocess_img(cropped_image)
+image_tensor = preprocess_img(image_path)
 
 detect_model = build_detect_cat(detection_model_path)
 _ = detect_cats(image_tensor, detect_model)
 
 if _ == 'CAT':
+
+    # get landmarks via api
+    result = send_img(image_path, api_url)
+    print(f'RESPONSE:\n {result}')
+    # process image with landmarks
+    cropped_image = process_response(result, image_path)   
     model = build_model(model_path, device)
     predict(image_tensor, model)
 else:

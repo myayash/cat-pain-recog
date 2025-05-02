@@ -56,6 +56,12 @@ def process_response(result, image_path):
     fig, ax = plt.subplots()
 
     for i, animal_data in enumerate(result):
+        try:
+            animal_data.items()
+        except Exception as e:
+            import sys
+            sys.exit(f'\nWHERE FACE??? {e}') 
+    
         print(f'\n[{i}] ANIMAL DATA:\n {animal_data}')
         print(f'\nANIMAL_DATA.ITEMS():\n {animal_data.items()}')
         
