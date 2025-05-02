@@ -1,3 +1,4 @@
+import os
 import base64
 import json
 import requests
@@ -45,38 +46,89 @@ def send_img(img_path, url):
     print('–'*10)
     print('IMAGE PROCESSING FAILED')
 
-url = "http://34.165.76.57:6000/landmarks"
-image_path = "/Users/macbook/Documents/skripsi_ayas/custom testing images (refs)/(acute pain in cats 2018 booklet) pain.png"  
-print(f'API URL {url}\nINPUT_PATH{image_path}')
+def process_response(result, image_path):
 
-result = send_img(image_path, url)
-print('RESPONSE: ')
-print(result)
+    num_animals = len(result)
+    cmap = matplotlib.colormaps['rainbow']
 
-print('PLOTTING...')
-image = Image.open(image_path)
+    image = Image.open(image_path)
 
-fig, ax = plt.subplots()
+    fig, ax = plt.subplots()
 
-# define number of distinct animals
-num_animals = len(result)
-cmap = matplotlib.colormaps['rainbow']
+    for i, animal_data in enumerate(result):
+        print(f'\n[{i}] ANIMAL DATA:\n {animal_data}')
+        print(f'\nANIMAL_DATA.ITEMS():\n {animal_data.items()}')
+        
+        color = cmap(i/num_animals+2)
 
-for i, animal_data in enumerate(result):
-  print(f'\n[{i}] ANIMAL DATA:\n {animal_data}')
-  print(f'\nANIMAL_DATA.ITEMS():\n{animal_data.items()}')
-  for animal, details in animal_data.items():
-    print(f'\nANIMAL: {animal}')
-    print(f'\nDETAILS: {details}')
-    color = cmap(i / num_animals +2)  # get a color from colormap
-    landmarks = details['landmarks']
-    for landmark in landmarks:
-      x = landmark['x']
-      y = landmark['y']
-      ax.scatter(x, y, color=color,  s=5)  # plot the point with the color from the colormap
+        for animal, details in animal_data.items():
+            print(f'\nShowing ANIMAL: {animal}\nDETAILS: {details}')
 
-plt.axis('off')
-plt.savefig('plotted_lms.png')
-# Show the plot
-ax.imshow(image)
-plt.show()
+            landmarks = details['landmarks']
+            for landmark in landmarks:
+                x = landmark['x']
+                y = landmark['y']
+                ax.scatter(x, y, color=color, s=5)
+
+        ax.set_title('Original')
+        ax.axis('off')
+        ax.imshow(image)
+        bbox = details['bbox']
+        pul = bbox.get('pul')
+        pbr = bbox.get('pbr')
+
+        if pul and pbr:
+            bbox_x1 = pul.get('x')
+            bbox_y1 = pul.get('y')
+            bbox_x2 = pbr.get('x')
+            bbox_y2 = pbr.get('y')
+
+            if all([isinstance(c, (int,float)) for c in [bbox_x1, bbox_y1, bbox_x2, bbox_y2]]):
+                bbox_x1, bbox_y1, bbox_x2, bbox_y2 = int(bbox_x1), int(bbox_y1), int(bbox_x2), int(bbox_y2)
+
+                bbox_w = bbox_x2 - bbox_x1
+                bbox_h = bbox_y2 - bbox_y1
+
+                print(f"\nPROCESSING BBOX for DATA [{i}]")
+
+                rect = matplotlib.patches.Rectangle(
+                        (bbox_x1, bbox_y1),
+                        bbox_w,
+                        bbox_h,
+                        linewidth=2,
+                        edgecolor=color,
+                        facecolor='none',
+                        label=f'{i} DATA BBOX'
+                        )
+                ax.add_patch(rect)
+
+                crop_box = (bbox_x1, bbox_y1, bbox_x2, bbox_y2)
+                try:
+                    cropped_image = image.crop(crop_box)
+                    print(f'Showing CROPPED image...')
+                    fig_c, ax_c = plt.subplots()
+
+                    ax_c.axis('off')
+                    ax_c.set_title('Cropped')
+                    ax_c.imshow(cropped_image)
+
+                    landmarks = details['landmarks']
+                    for landmark in landmarks:
+                        x = landmark['x'] - bbox_x1
+                        y = landmark['y'] - bbox_y1
+                        ax_c.scatter(x, y, color=color, s=10)
+
+                    plt.show()
+
+                except Exception as e:
+                    print(f'Error cropping... ERROR {e}')
+            else:
+                print('BBOX NOT VALID NUMBERS')
+        else:
+            print("BBOX MISSING 'pul' or 'pbr' ")
+
+    return cropped_image
+
+
+
+
