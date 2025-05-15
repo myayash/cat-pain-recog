@@ -13,7 +13,6 @@ from preprocess import denormalize, preprocess_img
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
 def conv_img_bs64(img_path):
     print("–" * 10)
     print("CONVERTING to BS64 STRING...")
@@ -21,7 +20,6 @@ def conv_img_bs64(img_path):
         bs64_string = base64.b64encode(img.read()).decode("utf-8")
     # print(f'SHOWING bs64 string:\n{bs64_string}\n')
     return bs64_string
-
 
 def json_load(img_path, img_bs64_string):
     print("–" * 10)
@@ -42,20 +40,27 @@ def send_img(img_path, url, verbose=False):
     print("CREATING HEADERS...")
     headers = {"Content-Type": "application/json"}
     response = requests.post(url, data=request, headers=headers)
-
     if response.status_code == 200:
         print("–" * 10)
         print("IMAGE PROCESSED")
         if verbose == True:
             print(f"RESPONSE: {response.json()}")
+
+        for i, animal_data in enumerate(response.json()):
+            try:
+                print(f'{animal_data.items()}')
+            except Exception as e:
+                print(f'CANT DETECT LDMS... {e}')
+                import sys
+                sys.exit()
+
         return response.json()
     else:
         print("–" * 10)
         print("IMAGE PROCESSING FAILED")
 
-
 def process_response(result, image_input, verbose=False, conv_tensor=False):
-
+    print(f'PROCESSING RESPONSE...')
     image = Image.open(image_input)
     num_animals = len(result)
     cmap = matplotlib.colormaps["rainbow"]
@@ -63,13 +68,6 @@ def process_response(result, image_input, verbose=False, conv_tensor=False):
     fig, ax = plt.subplots(1, 2)
 
     for i, animal_data in enumerate(result):
-        try:
-            animal_data.items()
-        except Exception as e:
-            import sys
-
-            sys.exit(f"\nWHERE FACE??? {e}")
-
         if verbose == True:
             print(f"\n[{i}] ANIMAL DATA:\n {animal_data}")
             print(f"\nANIMAL_DATA.ITEMS():\n {animal_data.items()}")
